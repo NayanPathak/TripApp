@@ -35,12 +35,17 @@ export const register = async (req, res) => {
   }
 };
 
-// Login
+// Login (Handles both Email and Mobile)
 export const login = async (req, res) => {
+  // 'email' here is just the variable name from the frontend request,
+  // but the value could actually be a mobile number.
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    // Search the database for a user where EITHER the email matches OR the mobile matches
+    const user = await User.findOne({
+      $or: [{ email: email }, { mobile: email }],
+    });
 
     if (user && (await bcrypt.compare(password, user.password))) {
       res.json({
@@ -64,10 +69,22 @@ export const createUser = async (req, res) => {
   }
 
   const { name, mobile, password } = req.body;
-  // Fallback email generation
+
+  // Create a dummy email for the user since the schema requires it
   const email = `${mobile}@tripapp.com`;
 
   try {
+    // Check if user exists by mobile
+    const existingUser = await User.findOne({ mobile });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "User with this mobile number already exists",
+        });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
       name,

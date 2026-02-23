@@ -9,15 +9,18 @@ import {
 } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
-export default function LoginScreen({ route }) {
+export default function LoginScreen({ route, navigation }) {
+  // Add navigation prop
   const { role } = route.params; // 'agent' or 'user'
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // For users, email might be constructed from mobile in real app, keeping strict for now
-    login(email, password);
+  const handleLogin = async () => {
+    setLoading(true);
+    await login(email, password);
+    setLoading(false);
   };
 
   return (
@@ -28,10 +31,11 @@ export default function LoginScreen({ route }) {
 
       <TextInput
         style={styles.input}
-        placeholder={role === "agent" ? "Email" : "Mobile / Email"}
+        placeholder={role === "agent" ? "Email" : "Mobile Number"}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
+        keyboardType={role === "agent" ? "email-address" : "phone-pad"}
       />
 
       <TextInput
@@ -42,9 +46,31 @@ export default function LoginScreen({ route }) {
         secureTextEntry
       />
 
-      <TouchableOpacity style={styles.btn} onPress={handleLogin}>
-        <Text style={styles.btnText}>Login</Text>
+      <TouchableOpacity
+        style={styles.btn}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.btnText}>Login</Text>
+        )}
       </TouchableOpacity>
+
+      {/* --- ADD THIS SECTION --- */}
+      {role === "agent" && (
+        <TouchableOpacity
+          style={styles.registerContainer}
+          onPress={() => navigation.navigate("RegisterAgent")}
+        >
+          <Text style={styles.registerText}>
+            Don't have an account?{" "}
+            <Text style={styles.registerLink}>Register here</Text>
+          </Text>
+        </TouchableOpacity>
+      )}
+      {/* ------------------------ */}
     </View>
   );
 }
@@ -61,6 +87,7 @@ const styles = StyleSheet.create({
     color: "#0C7779",
     textAlign: "center",
     marginBottom: 30,
+    fontWeight: "bold",
   },
   input: {
     borderWidth: 1,
@@ -77,4 +104,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   btnText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+
+  // New Styles
+  registerContainer: { marginTop: 20, alignItems: "center" },
+  registerText: { fontSize: 16, color: "#555" },
+  registerLink: { color: "#0C7779", fontWeight: "bold" },
 });
