@@ -1,4 +1,4 @@
-import React from "react";
+
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";

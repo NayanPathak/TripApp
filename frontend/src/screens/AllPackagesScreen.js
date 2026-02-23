@@ -31,7 +31,7 @@ export default function AllPackagesScreen() {
       const res = await api.get("/packages");
       setPackages(res.data.data);
     } catch (e) {
-      Alert.alert("Error", "Failed to load packages");
+      Alert.alert("Error", "Failed to load packages", e.message);
     } finally {
       setLoading(false);
     }

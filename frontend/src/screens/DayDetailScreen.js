@@ -1,10 +1,26 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
-import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons"; // Make sure to install expo vector icons
+import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 
 export default function DayDetailScreen({ route, navigation }) {
-  // Get the specific day data passed from the previous screen
-  const { dayData } = route.params;
+  // 1. SAFETY CHECK: Use optional chaining (?.) to prevent crashes
+  const dayData = route?.params?.dayData;
+
+  // 2. FALLBACK: If data didn't load, show a friendly message instead of a red screen
+  if (!dayData) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <Text style={{ fontSize: 18, color: "#666" }}>
+          No day details found.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -29,20 +45,28 @@ export default function DayDetailScreen({ route, navigation }) {
               <Text style={styles.label}>Name:</Text>
               <Text style={styles.value}>{dayData.hotel.name}</Text>
             </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Address:</Text>
-              <Text style={styles.value}>{dayData.hotel.address}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Check-in:</Text>
-              <Text style={styles.valueHighlight}>{dayData.hotel.checkIn}</Text>
-            </View>
+
+            {/* Optional: Only show address/check-in if they exist in the DB */}
+            {dayData.hotel.address && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Address:</Text>
+                <Text style={styles.value}>{dayData.hotel.address}</Text>
+              </View>
+            )}
+            {dayData.hotel.checkIn && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Check-in:</Text>
+                <Text style={styles.valueHighlight}>
+                  {dayData.hotel.checkIn}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       ) : null}
 
       {/* 2. TAXI SECTION (Only shows if taxi data exists) */}
-      {dayData.taxi && dayData.taxi.pickupLocation ? (
+      {dayData.taxi && dayData.taxi.vehicleType ? (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <FontAwesome5 name="taxi" size={20} color="#D32F2F" />
@@ -50,16 +74,20 @@ export default function DayDetailScreen({ route, navigation }) {
           </View>
 
           <View style={styles.card}>
-            <View style={styles.row}>
-              <Text style={styles.label}>Pickup:</Text>
-              <Text style={styles.value}>{dayData.taxi.pickupLocation}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Time:</Text>
-              <Text style={styles.valueHighlight}>
-                {dayData.taxi.pickupTime}
-              </Text>
-            </View>
+            {dayData.taxi.pickupLocation && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Pickup:</Text>
+                <Text style={styles.value}>{dayData.taxi.pickupLocation}</Text>
+              </View>
+            )}
+            {dayData.taxi.pickupTime && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Time:</Text>
+                <Text style={styles.valueHighlight}>
+                  {dayData.taxi.pickupTime}
+                </Text>
+              </View>
+            )}
             <View style={styles.row}>
               <Text style={styles.label}>Vehicle:</Text>
               <Text style={styles.value}>{dayData.taxi.vehicleType}</Text>
@@ -68,7 +96,7 @@ export default function DayDetailScreen({ route, navigation }) {
         </View>
       ) : null}
 
-      {/* 3. PLACES TO VISIT (The Fixed Image Card) */}
+      {/* 3. PLACES TO VISIT (The Fixed Multiple Image Card) */}
       {dayData.places && dayData.places.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -76,9 +104,10 @@ export default function DayDetailScreen({ route, navigation }) {
             <Text style={styles.sectionTitle}> Places to Visit</Text>
           </View>
 
+          {/* This .map() is what creates the vertical scroll of multiple places! */}
           {dayData.places.map((place, index) => (
             <View key={index} style={styles.placeCard}>
-              {/* Image is now INSIDE the card at the top */}
+              {/* Image Container */}
               {place.image ? (
                 <Image
                   source={{ uri: place.image }}
@@ -103,6 +132,7 @@ export default function DayDetailScreen({ route, navigation }) {
                 </View>
               )}
 
+              {/* Text Content Container */}
               <View style={styles.placeContent}>
                 <View
                   style={{
@@ -111,9 +141,15 @@ export default function DayDetailScreen({ route, navigation }) {
                   }}
                 >
                   <Text style={styles.placeName}>{place.name}</Text>
-                  <Text style={styles.placeTime}>{place.time}</Text>
+                  {place.time && (
+                    <Text style={styles.placeTime}>{place.time}</Text>
+                  )}
                 </View>
-                <Text style={styles.placeType}>{place.type}</Text>
+
+                {place.type && (
+                  <Text style={styles.placeType}>{place.type}</Text>
+                )}
+
                 {place.description && (
                   <Text style={styles.placeDesc}>{place.description}</Text>
                 )}
@@ -154,10 +190,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
-    elevation: 2, // Shadow for Android
+    elevation: 2,
     shadowColor: "#000",
     shadowOpacity: 0.1,
-    shadowRadius: 4, // iOS
+    shadowRadius: 4,
   },
   row: {
     flexDirection: "row",
@@ -174,7 +210,6 @@ const styles = StyleSheet.create({
   },
   valueHighlight: { fontWeight: "bold", fontSize: 16, color: "#0C7779" },
 
-  // Places Card Styling
   placeCard: {
     backgroundColor: "#fff",
     borderRadius: 12,

@@ -13,8 +13,6 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import api from "../services/api";
 
-// Import from .env
-// Ensure you run: npx expo start -c (to clear cache after changing .env)
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from "@env";
 
 export default function CreatePackageScreen({ navigation }) {
@@ -28,13 +26,15 @@ export default function CreatePackageScreen({ navigation }) {
     dayNumber: 1,
     hotel: "",
     taxi: "",
-    places: "",
-    images: [],
+    places: [], // Array of objects: { name: "", image: "" }
   });
+
+  // State for the specific place currently being typed
+  const [currentPlaceName, setCurrentPlaceName] = useState("");
+  const [currentPlaceImg, setCurrentPlaceImg] = useState(null);
   const [uploadingImg, setUploadingImg] = useState(false);
 
   // --- CLOUDINARY UPLOAD FUNCTION ---
- 
   const uploadToCloudinary = async (base64Img) => {
     if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
       Alert.alert(
@@ -45,8 +45,6 @@ export default function CreatePackageScreen({ navigation }) {
     }
 
     const data = new FormData();
-
-    // 1. Because we are using base64, we can just pass the string directly! No need to split filenames.
     data.append("file", base64Img);
     data.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
     data.append("cloud_name", CLOUDINARY_CLOUD_NAME);
@@ -63,12 +61,9 @@ export default function CreatePackageScreen({ navigation }) {
       const result = await res.json();
 
       if (result.secure_url) {
-        return result.secure_url; // Return the final URL
+        return result.secure_url;
       } else {
-        Alert.alert(
-          "Upload Failed",
-          result.error?.message || "Unknown error from Cloudinary",
-        );
+        Alert.alert("Upload Failed", result.error?.message || "Unknown error");
         return null;
       }
     } catch (err) {
@@ -88,119 +83,110 @@ export default function CreatePackageScreen({ navigation }) {
       });
 
       if (!result.canceled) {
-        // 1. Turn on the loading spinner so the user knows it's working
-        setUploadingImg(true);
-
         const base64Img = `data:image/jpg;base64,${result.assets[0].base64}`;
-        console.log("Base64 ready, uploading to Cloudinary...");
-
-        // 2. AWAIT the upload and capture the returned URL
-        const uploadedUrl = await uploadToCloudinary(base64Img);
-
-        // 3. If successful, add the new URL to the tempDay.images array
-        if (uploadedUrl) {
-          console.log("Success! Saved URL:", uploadedUrl);
-          setTempDay((prevDay) => ({
-            ...prevDay,
-            images: [...prevDay.images, uploadedUrl],
-          }));
-        }
-
-        // 4. Turn off the loading spinner
-        setUploadingImg(false);
+        setCurrentPlaceImg(base64Img);
+        console.log("Image selected for current place");
       }
     } catch (error) {
-      setUploadingImg(false);
-      console.log("ImagePicker Error: ", error);
       alert("Error opening gallery: " + error.message);
     }
   };
 
-  const addDay = () => {
-    if (!tempDay.hotel || !tempDay.places) {
+  const handleAddPlaceToDay = async () => {
+    if (!currentPlaceName || !currentPlaceImg) {
       Alert.alert(
         "Missing Info",
-        "Please fill Hotel and Places before adding the day.",
+        "Please provide a place name and select an image.",
       );
       return;
     }
+
+    setUploadingImg(true);
+    const uploadedUrl = await uploadToCloudinary(currentPlaceImg);
+
+    if (uploadedUrl) {
+      setTempDay((prev) => ({
+        ...prev,
+        places: [
+          ...prev.places,
+          { name: currentPlaceName, image: uploadedUrl },
+        ],
+      }));
+
+      // Reset the small form for the next place
+      setCurrentPlaceName("");
+      setCurrentPlaceImg(null);
+      Alert.alert("Success", "Place added to current day!");
+    }
+    setUploadingImg(false);
+  };
+
+  const addDay = () => {
+    // Make sure they added at least one place
+    if (tempDay.places.length === 0) {
+      Alert.alert(
+        "Missing Info",
+        "Please add at least one place to visit for this day.",
+      );
+      return;
+    }
+
     setDays([...days, tempDay]);
+
     // Reset temp day for the next day
     setTempDay({
       dayNumber: days.length + 2,
       hotel: "",
       taxi: "",
-      places: "",
-      images: [],
+      places: [], // Reset to empty array
     });
   };
 
- const submitPackage = async () => {
-   if (!title || !cities || days.length === 0) {
-     Alert.alert(
-       "Error",
-       "Please fill package details and add at least one day.",
-     );
-     return;
-   }
+  const submitPackage = async () => {
+    if (!title || !cities || days.length === 0) {
+      Alert.alert(
+        "Error",
+        "Please fill package details and add at least one day.",
+      );
+      return;
+    }
 
-   setLoading(true);
-   try {
-     // --- CRITICAL FIX: Reformat the 'days' array to match Backend Schema ---
-     const formattedItinerary = days.map((day) => {
-       // 1. Format Hotel (String -> Object)
-       const formattedHotel = day.hotel ? { name: day.hotel } : undefined;
+    setLoading(true);
+    try {
+      // Reformat to match Backend Schema
+      const formattedItinerary = days.map((day) => {
+        const formattedHotel = day.hotel ? { name: day.hotel } : undefined;
+        const formattedTaxi = day.taxi ? { vehicleType: day.taxi } : undefined;
 
-       // 2. Format Taxi (String -> Object)
-       const formattedTaxi = day.taxi ? { vehicleType: day.taxi } : undefined;
+        return {
+          dayNumber: day.dayNumber,
+          title: `Day ${day.dayNumber} in ${cities}`,
+          hotel: formattedHotel,
+          taxi: formattedTaxi,
+          places: day.places, // It is already formatted properly as [{name, image}]!
+        };
+      });
 
-       // 3. Format Places (Comma Separated String -> Array of Objects)
-       // AND attach the uploaded images to the first place (or distribute them)
-       let formattedPlaces = [];
-       if (day.places) {
-         // Split "Munnar, Tea Garden" into an array
-         const placeNames = day.places.split(",").map((p) => p.trim());
+      await api.post("/packages", {
+        title,
+        cities,
+        totalDays: days.length,
+        itinerary: formattedItinerary,
+      });
 
-         formattedPlaces = placeNames.map((placeName, index) => {
-           return {
-             name: placeName,
-             // If we have an uploaded image, assign it to the first place
-             image: index === 0 && day.images.length > 0 ? day.images[0] : null,
-           };
-         });
-       }
-
-       return {
-         dayNumber: day.dayNumber,
-         title: `Day ${day.dayNumber} in ${cities}`, // Optional title
-         hotel: formattedHotel,
-         taxi: formattedTaxi,
-         places: formattedPlaces,
-       };
-     });
-
-     // --- SEND FORMATTED DATA ---
-     await api.post("/packages", {
-       title,
-       cities,
-       totalDays: days.length,
-       itinerary: formattedItinerary, // Send the newly formatted array
-     });
-
-     Alert.alert("Success", "Package created successfully!", [
-       { text: "OK", onPress: () => navigation.goBack() },
-     ]);
-   } catch (e) {
-     // Better error logging to see exactly what Mongoose rejects
-     console.log("Backend Error:", e.response?.data || e.message);
-     Alert.alert(
-       "Error",
-       e.response?.data?.message || "Failed to create package.",
-     );
-   } finally {
-     setLoading(false);
-   }
- };
+      Alert.alert("Success", "Package created successfully!", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+    } catch (e) {
+      console.log("Backend Error:", e.response?.data || e.message);
+      Alert.alert(
+        "Error",
+        e.response?.data?.message || "Failed to create package.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -228,47 +214,66 @@ export default function CreatePackageScreen({ navigation }) {
 
       <TextInput
         style={styles.input}
-        placeholder="Hotel Name"
+        placeholder="Hotel Name (Optional)"
         onChangeText={(t) => setTempDay({ ...tempDay, hotel: t })}
         value={tempDay.hotel}
       />
       <TextInput
         style={styles.input}
-        placeholder="Taxi / Driver Info"
+        placeholder="Taxi / Driver Info (Optional)"
         onChangeText={(t) => setTempDay({ ...tempDay, taxi: t })}
         value={tempDay.taxi}
       />
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        multiline
-        placeholder="Places to Visit (comma separated)"
-        onChangeText={(t) => setTempDay({ ...tempDay, places: t })}
-        value={tempDay.places}
-      />
 
-      {/* Image Upload Section */}
-      <View style={styles.imageSection}>
+      {/* --- NEW PLACE ADDITION SECTION --- */}
+      <View style={styles.placeCreatorContainer}>
+        <Text style={styles.label}>Add Places to Visit</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Place Name (e.g. Ajmer Fort)"
+          value={currentPlaceName}
+          onChangeText={setCurrentPlaceName}
+        />
+
+        <TouchableOpacity style={styles.imgBtn} onPress={pickImage}>
+          <Text style={styles.btnText}>
+            {currentPlaceImg ? "✅ Image Selected" : "📸 Select Place Image"}
+          </Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
-          style={styles.imgBtn}
-          onPress={pickImage}
+          style={[
+            styles.addDayBtn,
+            { backgroundColor: "#E0F2F1", marginTop: 10 },
+          ]}
+          onPress={handleAddPlaceToDay}
           disabled={uploadingImg}
         >
           {uploadingImg ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color="#0C7779" />
           ) : (
-            <Text style={styles.btnText}>
-              + Upload Image for Day {tempDay.dayNumber}
+            <Text style={styles.addDayText}>
+              + Add This Place to Day {tempDay.dayNumber}
             </Text>
           )}
         </TouchableOpacity>
-
-        {/* Preview uploaded images for this day */}
-        <ScrollView horizontal style={{ marginTop: 10 }}>
-          {tempDay.images.map((img, index) => (
-            <Image key={index} source={{ uri: img }} style={styles.thumb} />
-          ))}
-        </ScrollView>
       </View>
+
+      {/* Preview of places added TO THE CURRENT DAY */}
+      {tempDay.places.length > 0 && (
+        <View style={{ marginVertical: 10 }}>
+          <Text style={{ fontWeight: "bold", marginBottom: 8 }}>
+            Places added for Day {tempDay.dayNumber}:
+          </Text>
+          {tempDay.places.map((p, idx) => (
+            <View key={idx} style={styles.placePreviewRow}>
+              <Image source={{ uri: p.image }} style={styles.miniThumb} />
+              <Text style={styles.placePreviewText}>{p.name}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       <TouchableOpacity style={styles.addDayBtn} onPress={addDay}>
         <Text style={styles.addDayText}>
@@ -326,21 +331,32 @@ const styles = StyleSheet.create({
   },
   divider: { height: 1, backgroundColor: "#eee", marginVertical: 20 },
 
-  imageSection: { marginBottom: 15 },
+  placeCreatorContainer: {
+    backgroundColor: "#f8f9fa",
+    padding: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    marginBottom: 15,
+  },
   imgBtn: {
     backgroundColor: "#555",
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
   },
-  thumb: {
-    width: 60,
-    height: 60,
-    borderRadius: 5,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
+  btnText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+
+  placePreviewRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 5,
   },
+  miniThumb: { width: 40, height: 40, borderRadius: 4, marginRight: 10 },
+  placePreviewText: { fontSize: 16, color: "#333" },
 
   addDayBtn: {
     borderColor: "#0C7779",
@@ -360,5 +376,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  btnText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
 });
