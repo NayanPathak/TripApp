@@ -26,6 +26,8 @@ export default function CreatePackageScreen({ navigation }) {
     dayNumber: 1,
     hotel: "",
     taxi: "",
+    pickupLocation: "",
+    pickupTime: "", 
     places: [], // Array of objects: { name: "", image: "" }
   });
 
@@ -138,6 +140,8 @@ export default function CreatePackageScreen({ navigation }) {
       dayNumber: days.length + 2,
       hotel: "",
       taxi: "",
+      pickupLocation: "",
+      pickupTime: "",
       places: [], // Reset to empty array
     });
   };
@@ -156,7 +160,13 @@ export default function CreatePackageScreen({ navigation }) {
       // Reformat to match Backend Schema
       const formattedItinerary = days.map((day) => {
         const formattedHotel = day.hotel ? { name: day.hotel } : undefined;
-        const formattedTaxi = day.taxi ? { vehicleType: day.taxi } : undefined;
+        const formattedTaxi = day.taxi
+          ? {
+              vehicleType: day.taxi,
+              pickupLocation: day.pickupLocation,
+              pickupTime: day.pickupTime,
+            }
+          : undefined;
 
         return {
           dayNumber: day.dayNumber,
@@ -218,6 +228,21 @@ export default function CreatePackageScreen({ navigation }) {
         onChangeText={(t) => setTempDay({ ...tempDay, hotel: t })}
         value={tempDay.hotel}
       />
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <TextInput
+          style={[styles.input, { flex: 1, marginRight: 10 }]}
+          placeholder="Pickup Loc (e.g. Hotel)"
+          onChangeText={(t) => setTempDay({ ...tempDay, pickupLocation: t })}
+          value={tempDay.pickupLocation}
+        />
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          placeholder="Time (e.g. 9:00 AM)"
+          onChangeText={(t) => setTempDay({ ...tempDay, pickupTime: t })}
+          value={tempDay.pickupTime}
+        />
+      </View>
+
       <TextInput
         style={styles.input}
         placeholder="Taxi / Driver Info (Optional)"
