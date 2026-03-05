@@ -61,3 +61,8 @@ pass - Password123
 name  - UserOne
 mobile - my no.
 pass - Password1234
+
+
+okay if i want to share this journey on twitter as thread will you give me copy and paste content  for tweets 
+
+it is a startup idea which i am working upon with my friend so i want to mention this but i also dont want i dont know whether i should sharew or not 
