@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { AuthContext } from "../context/AuthContext";
+import { useTheme } from "../theme/ThemeProvider";
 
 export default function LoginScreen({ route, navigation }) {
   // Add navigation prop
@@ -16,6 +17,7 @@ export default function LoginScreen({ route, navigation }) {
   const [password, setPassword] = useState("");
   const { login } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
+   const { theme } = useTheme();
 
   const handleLogin = async () => {
     setLoading(true);
@@ -24,14 +26,32 @@ export default function LoginScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.colors.background },
+      ]}
+    >
+      <Text
+        style={[
+          styles.header,
+          { color: theme.colors.text },
+        ]}
+      >
         {role === "agent" ? "Agent Login" : "User Login"}
       </Text>
 
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.inputText,
+            borderColor: theme.colors.border,
+          },
+        ]}
         placeholder={role === "agent" ? "Email" : "Mobile Number"}
+        placeholderTextColor={theme.colors.muted}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -39,22 +59,40 @@ export default function LoginScreen({ route, navigation }) {
       />
 
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.inputText,
+            borderColor: theme.colors.border,
+          },
+        ]}
         placeholder="Password"
+        placeholderTextColor={theme.colors.muted}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
 
       <TouchableOpacity
-        style={styles.btn}
+        style={[
+          styles.btn,
+          { backgroundColor: theme.colors.primary },
+        ]}
         onPress={handleLogin}
         disabled={loading}
       >
         {loading ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={theme.colors.buttonText} />
         ) : (
-          <Text style={styles.btnText}>Login</Text>
+          <Text
+            style={[
+              styles.btnText,
+              { color: theme.colors.buttonText },
+            ]}
+          >
+            Login
+          </Text>
         )}
       </TouchableOpacity>
 
@@ -64,9 +102,21 @@ export default function LoginScreen({ route, navigation }) {
           style={styles.registerContainer}
           onPress={() => navigation.navigate("RegisterAgent")}
         >
-          <Text style={styles.registerText}>
+          <Text
+            style={[
+              styles.registerText,
+              { color: theme.colors.muted },
+            ]}
+          >
             Don't have an account?{" "}
-            <Text style={styles.registerLink}>Register here</Text>
+            <Text
+              style={[
+                styles.registerLink,
+                { color: theme.colors.primary },
+              ]}
+            >
+              Register here
+            </Text>
           </Text>
         </TouchableOpacity>
       )}
@@ -80,33 +130,29 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: "center",
-    backgroundColor: "#fff",
   },
   header: {
     fontSize: 28,
-    color: "#0C7779",
     textAlign: "center",
     marginBottom: 30,
     fontWeight: "bold",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
     padding: 15,
     borderRadius: 8,
     marginBottom: 15,
     fontSize: 16,
   },
   btn: {
-    backgroundColor: "#0C7779",
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
   },
-  btnText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  btnText: { fontSize: 18, fontWeight: "bold" },
 
   // New Styles
   registerContainer: { marginTop: 20, alignItems: "center" },
-  registerText: { fontSize: 16, color: "#555" },
-  registerLink: { color: "#0C7779", fontWeight: "bold" },
+  registerText: { fontSize: 16 },
+  registerLink: { fontWeight: "bold" },
 });

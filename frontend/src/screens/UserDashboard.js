@@ -8,10 +8,12 @@ import {
 } from "react-native";
 import api from "../services/api";
 import { AuthContext } from "../context/AuthContext";
+import { useTheme } from "../theme/ThemeProvider";
 
 export default function UserDashboard({ navigation }) {
   const [packages, setPackages] = useState([]);
   const { logout } = useContext(AuthContext);
+  const { theme } = useTheme();
 
   useEffect(() => {
     fetchPackages();
@@ -29,15 +31,33 @@ export default function UserDashboard({ navigation }) {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[
+        styles.card,
+        {
+          backgroundColor: theme.colors.card,
+          borderColor: theme.colors.border,
+        },
+      ]}
       onPress={() =>
         // This passes the whole package to the PackageDetail screen
         navigation.navigate("PackageDetail", { packageData: item })
       }
     >
       <View>
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardSub}>
+        <Text
+          style={[
+            styles.cardTitle,
+            { color: theme.colors.text },
+          ]}
+        >
+          {item.title}
+        </Text>
+        <Text
+          style={[
+            styles.cardSub,
+            { color: theme.colors.muted },
+          ]}
+        >
           {item.cities} • {item.totalDays} Days
         </Text>
       </View>
@@ -45,9 +65,21 @@ export default function UserDashboard({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.colors.background },
+      ]}
+    >
       <View style={styles.headerRow}>
-        <Text style={styles.header}>My Trips</Text>
+        <Text
+          style={[
+            styles.header,
+            { color: theme.colors.text },
+          ]}
+        >
+          My Trips
+        </Text>
         <TouchableOpacity onPress={logout}>
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
@@ -61,7 +93,13 @@ export default function UserDashboard({ navigation }) {
         }
         contentContainerStyle={{ paddingBottom: 20 }}
         ListEmptyComponent={
-          <Text style={{ textAlign: "center", marginTop: 20 }}>
+          <Text
+            style={{
+              textAlign: "center",
+              marginTop: 20,
+              color: theme.colors.muted,
+            }}
+          >
             No trips assigned yet.
           </Text>
         }
@@ -75,7 +113,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     paddingTop: 50,
-    backgroundColor: "#F8FAFC", // A very soft, modern off-white/blue
   },
   headerRow: {
     flexDirection: "row",
@@ -86,7 +123,6 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 28, // Slightly larger
     fontWeight: "900", // Bolder
-    color: "#0F172A", // Dark slate instead of pure black
     letterSpacing: -0.5,
   },
   logoutText: {
@@ -102,7 +138,6 @@ const styles = StyleSheet.create({
 
   // --- THE PREMIUM CARD UPGRADE ---
   card: {
-    backgroundColor: "#ffffff",
     padding: 20,
     borderRadius: 20, // Much rounder
     marginBottom: 16,
@@ -120,17 +155,14 @@ const styles = StyleSheet.create({
 
     // Very subtle border instead of the heavy left line
     borderWidth: 1,
-    borderColor: "#F1F5F9",
   },
   cardTitle: {
     fontSize: 19,
     fontWeight: "800",
-    color: "#0F172A",
     marginBottom: 4,
   },
   cardSub: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#64748B",
   },
 });

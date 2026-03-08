@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { AuthContext } from "../context/AuthContext";
+import { useTheme } from "../theme/ThemeProvider";
 
 // --- AUTH SCREENS ---
 import WelcomeScreen from "../screens/WelcomeScreen";
@@ -22,9 +23,10 @@ const Stack = createStackNavigator();
 
 export default function AppNavigator() {
   const { userToken, userRole } = useContext(AuthContext);
+  const { navigationTheme } = useTheme();
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {userToken == null ? (
           // === AUTH STACK (Not Logged In) ===

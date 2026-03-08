@@ -37,7 +37,11 @@ export default function CreateUserScreen({ navigation }) {
         ]);
       }
     } catch (error) {
-      const msg = error.response?.data?.message || "Something went wrong";
+      const msg =
+        error.response?.data?.message ||
+        (error.code === "ECONNREFUSED" || error.message?.includes("Network")
+          ? "Cannot reach server. Check that the backend is running and BASE_URL in src/services/api.js is correct."
+          : error.message || "Something went wrong");
       Alert.alert("Creation Failed", msg);
     } finally {
       setLoading(false);

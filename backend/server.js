@@ -13,7 +13,13 @@ const app = express();
 connectDB();
 
 app.use(express.json());
-app.use(cors());
+
+// Add this in your backend server.js
+app.use(cors({
+  origin: "*", // This allows your phone to talk to your laptop
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 // Mount Routes
 app.get("/", (req, res) => {

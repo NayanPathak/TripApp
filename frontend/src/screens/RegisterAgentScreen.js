@@ -40,7 +40,11 @@ export default function RegisterAgentScreen({ navigation }) {
         ]);
       }
     } catch (error) {
-      const msg = error.response?.data?.message || "Registration failed";
+      const msg =
+        error.response?.data?.message ||
+        (error.code === "ECONNREFUSED" || error.message?.includes("Network")
+          ? "Cannot reach server. Check that the backend is running and BASE_URL in src/services/api.js is correct (include http:// and port, e.g. http://YOUR_IP:5000/api)."
+          : error.message || "Registration failed");
       Alert.alert("Error", msg);
     } finally {
       setLoading(false);
