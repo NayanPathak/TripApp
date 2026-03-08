@@ -17,7 +17,7 @@ export default function LoginScreen({ route, navigation }) {
   const [password, setPassword] = useState("");
   const { login } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
-   const { theme } = useTheme();
+  const { theme } = useTheme();
 
   const handleLogin = async () => {
     setLoading(true);
@@ -27,17 +27,9 @@ export default function LoginScreen({ route, navigation }) {
 
   return (
     <View
-      style={[
-        styles.container,
-        { backgroundColor: theme.colors.background },
-      ]}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      <Text
-        style={[
-          styles.header,
-          { color: theme.colors.text },
-        ]}
-      >
+      <Text style={[styles.header, { color: theme.colors.text }]}>
         {role === "agent" ? "Agent Login" : "User Login"}
       </Text>
 
@@ -75,22 +67,14 @@ export default function LoginScreen({ route, navigation }) {
       />
 
       <TouchableOpacity
-        style={[
-          styles.btn,
-          { backgroundColor: theme.colors.primary },
-        ]}
+        style={[styles.btn, { backgroundColor: theme.colors.primary }]}
         onPress={handleLogin}
         disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color={theme.colors.buttonText} />
         ) : (
-          <Text
-            style={[
-              styles.btnText,
-              { color: theme.colors.buttonText },
-            ]}
-          >
+          <Text style={[styles.btnText, { color: theme.colors.buttonText }]}>
             Login
           </Text>
         )}
@@ -102,18 +86,10 @@ export default function LoginScreen({ route, navigation }) {
           style={styles.registerContainer}
           onPress={() => navigation.navigate("RegisterAgent")}
         >
-          <Text
-            style={[
-              styles.registerText,
-              { color: theme.colors.muted },
-            ]}
-          >
+          <Text style={[styles.registerText, { color: theme.colors.muted }]}>
             Don't have an account?{" "}
             <Text
-              style={[
-                styles.registerLink,
-                { color: theme.colors.primary },
-              ]}
+              style={[styles.registerLink, { color: theme.colors.primary }]}
             >
               Register here
             </Text>

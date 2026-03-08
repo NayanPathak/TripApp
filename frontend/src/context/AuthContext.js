@@ -16,9 +16,25 @@ export const AuthProvider = ({ children }) => {
         setUserRole(res.data.role);
         await SecureStore.setItemAsync("token", res.data.token);
         await SecureStore.setItemAsync("role", res.data.role);
+      } else {
+        // Backend responded but did not mark success
+        alert(res.data.message || "Login failed");
       }
     } catch (e) {
-      alert(e.response?.data?.message || "Login failed");
+      console.log("Login error:", {
+        message: e.message,
+        code: e.code,
+        status: e.response?.status,
+        data: e.response?.data,
+      });
+
+      const msg =
+        e.response?.data?.message ||
+        (e.code === "ECONNREFUSED" || e.message?.includes("Network")
+          ? "Cannot reach server. Check that the backend is running and BASE_URL in src/services/api.js is correct (include http:// and port)."
+          : "Login failed");
+
+      alert(msg);
     }
   };
 
