@@ -1,4 +1,3 @@
-
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
@@ -54,6 +53,11 @@ export const login = async (req, res) => {
   const identifier = req.body.identifier || req.body.email;
   const { password } = req.body;
 
+  console.log("LOGIN DEBUG - Received:", {
+    identifier,
+    hasPassword: !!password,
+  });
+
   if (!identifier || !password) {
     return res.status(400).json({
       success: false,
@@ -66,14 +70,27 @@ export const login = async (req, res) => {
       $or: [{ email: identifier }, { mobile: identifier }],
     });
 
+    console.log(
+      "LOGIN DEBUG - User found:",
+      user
+        ? {
+            id: user._id,
+            email: user.email,
+            mobile: user.mobile,
+            role: user.role,
+          }
+        : "NULL",
+    );
+
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "User not found.",
+        message: "User not found. Check if you registered correctly.",
       });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
+    console.log("LOGIN DEBUG - Password match:", passwordMatch);
 
     if (!passwordMatch) {
       return res.status(401).json({
@@ -82,9 +99,12 @@ export const login = async (req, res) => {
       });
     }
 
+    const token = generateToken(user._id, user.role);
+    console.log("LOGIN DEBUG - Token generated:", token ? "YES" : "NO");
+
     res.json({
       success: true,
-      token: generateToken(user._id, user.role),
+      token: token,
       role: user.role,
       name: user.name,
     });
@@ -93,7 +113,7 @@ export const login = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: "Server error during login.",
+      message: "Server error during login: " + error.message,
     });
   }
 };

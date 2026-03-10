@@ -53,34 +53,50 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      console.log("LOGIN URL:", api.defaults.baseURL + "/auth/login");
+      const loginUrl = api.defaults.baseURL + "/auth/login";
+      console.log("LOGIN URL:", loginUrl);
+      console.log("LOGIN REQUEST:", { identifier, role });
 
       const res = await api.post("/auth/login", {
         identifier,
         password,
       });
 
-      console.log("LOGIN RESPONSE:", res.data);
+      console.log("LOGIN RESPONSE STATUS:", res.status);
+      console.log("LOGIN RESPONSE DATA:", JSON.stringify(res.data));
 
       if (res.data?.token) {
         await applyLoginState(res.data);
+        Alert.alert("Success", `Welcome ${res.data.name || role}!`);
       } else {
-        Alert.alert("Login Failed", res.data?.message || "Invalid credentials");
+        Alert.alert(
+          "Login Failed",
+          res.data?.message || "Invalid credentials - no token received",
+        );
       }
     } catch (error) {
-      console.log("LOGIN ERROR:", error.response?.data || error.message);
+      console.log("LOGIN ERROR:", error);
+      console.log("ERROR RESPONSE:", error.response?.data);
+      console.log("ERROR STATUS:", error.response?.status);
 
       let errorMessage = "Cannot reach server.";
 
       if (error.response) {
-        errorMessage =
-          error.response.data?.message ||
-          `Server Error: ${error.response.status}`;
+        const serverMsg = error.response.data?.message;
+        const serverStatus = error.response.status;
+        errorMessage = serverMsg || `Server Error: ${serverStatus}`;
+        // Debug: show full error details
+        console.log("Full error response:", error.response.data);
       } else if (error.request) {
         errorMessage = "No response from server. Check backend URL.";
       }
 
-      Alert.alert("Login Failed", errorMessage);
+      Alert.alert(
+        "Login Failed",
+        errorMessage +
+          "\n\nDebug: " +
+          (error.response?.data?.message || error.message),
+      );
     }
   };
 
