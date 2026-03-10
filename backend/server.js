@@ -14,7 +14,7 @@ connectDB();
 
 app.use(express.json());
 
-// Add this in your backend server.js
+//Add this in your backend server.js
 const cors = require("cors");
 app.use(cors({
   origin: "*", // This allows your phone to talk to your laptop
