@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (input, passwordInput) => {
+  const login = async (input, passwordInput, role) => {
     const identifier = (input || "").trim();
     const password = (passwordInput || "").trim();
 
