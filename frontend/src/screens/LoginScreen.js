@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,14 +14,26 @@ export default function LoginScreen({ route, navigation }) {
   // Add navigation prop
   const { role } = route.params; // 'agent' or 'user'
   const [email, setEmail] = useState("");
+  const paramsEmail = route?.params?.email || "";
+  const paramsPassword = route?.params?.password || "";
+  useEffect(() => {
+    if (paramsEmail) setEmail(paramsEmail);
+    if (paramsPassword) setPassword(paramsPassword);
+  }, [paramsEmail, paramsPassword]);
   const [password, setPassword] = useState("");
   const { login } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const { theme } = useTheme();
 
   const handleLogin = async () => {
+    console.log("LOGIN DEBUG - Attempting login with:", {
+      email: email.trim(),
+      passwordLength: password.length,
+      hasEmail: !!email.trim(),
+      hasPassword: !!password.trim(),
+    });
     setLoading(true);
-    await login(email, password, role);
+    await login(email, password);
     setLoading(false);
   };
 
@@ -69,7 +81,7 @@ export default function LoginScreen({ route, navigation }) {
       <TouchableOpacity
         style={[styles.btn, { backgroundColor: theme.colors.primary }]}
         onPress={handleLogin}
-        disabled={loading}
+        disabled={loading || !email.trim() || !password.trim()}
       >
         {loading ? (
           <ActivityIndicator color={theme.colors.buttonText} />

@@ -35,7 +35,12 @@ export default function RegisterAgentScreen({ navigation }) {
         Alert.alert("Success", "Account created! Please log in.", [
           {
             text: "OK",
-            onPress: () => navigation.navigate("Login", { role: "agent" }),
+            onPress: () =>
+              navigation.navigate("Login", {
+                role: "agent",
+                email: email.trim(),
+                password: password.trim(),
+              }),
           },
         ]);
       }

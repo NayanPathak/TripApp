@@ -1,4 +1,5 @@
 import React, { useContext } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { AuthContext } from "../context/AuthContext";
@@ -15,14 +16,25 @@ import CreatePackageScreen from "../screens/CreatePackageScreen";
 import CreateUserScreen from "../screens/CreateUserScreen";
 import AllPackagesScreen from "../screens/AllPackagesScreen";
 
+// --- ADMIN SCREENS ---
+import AdminDashboard from "../screens/AdminDashboard";
+
 // --- USER SCREENS ---
 import UserDashboard from "../screens/UserDashboard";
 import PackageDetailScreen from "../screens/PackageDetailScreen";
 import DayDetailScreen from "../screens/DayDetailScreen"; // <--- 1. NEW IMPORT
 const Stack = createStackNavigator();
 
+function BootScreen() {
+  return (
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+      <ActivityIndicator size="large" />
+    </View>
+  );
+}
+
 export default function AppNavigator() {
-  const { userToken, userRole } = useContext(AuthContext);
+  const { userToken, userRole, bootstrapped } = useContext(AuthContext);
   const { navigationTheme } = useTheme();
 
   console.log("NAVIGATION DEBUG - userToken:", userToken ? "EXISTS" : "NULL");
@@ -31,7 +43,11 @@ export default function AppNavigator() {
   return (
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {userToken == null ? (
+        {!bootstrapped ? (
+          <>
+            <Stack.Screen name="Boot" component={BootScreen} />
+          </>
+        ) : userToken == null ? (
           // === AUTH STACK (Not Logged In) ===
           <>
             <Stack.Screen name="Welcome" component={WelcomeScreen} />
@@ -40,6 +56,11 @@ export default function AppNavigator() {
               name="RegisterAgent"
               component={RegisterAgentScreen}
             />
+          </>
+        ) : userRole === "admin" ? (
+          // === ADMIN STACK ===
+          <>
+            <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
           </>
         ) : userRole === "agent" ? (
           // === AGENT STACK ===

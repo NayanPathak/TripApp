@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import api from "../services/api";
@@ -8,149 +8,86 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [userToken, setUserToken] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [bootstrapped, setBootstrapped] = useState(false);
 
-  // Restore token on app start
   useEffect(() => {
-    const loadToken = async () => {
+    const restore = async () => {
       try {
         const token = await SecureStore.getItemAsync("token");
         const role = await SecureStore.getItemAsync("role");
 
-        if (token) {
-          setUserToken(token);
-          setUserRole(role);
-        }
+        if (token) setUserToken(token);
+        if (role) setUserRole(role);
       } catch (err) {
-        console.log("Token restore error:", err);
+        console.log("Auth restore error:", err);
+      } finally {
+        setBootstrapped(true);
       }
     };
 
-    loadToken();
+    restore();
   }, []);
 
-  const applyLoginState = async (data) => {
-    try {
-      console.log("APPLY LOGIN STATE - Received data:", JSON.stringify(data));
-
-      setUserToken(data.token);
-      setUserRole(data.role);
-
-      console.log("APPLY LOGIN STATE - Setting role:", data.role);
-
-      await SecureStore.setItemAsync("token", data.token);
-      await SecureStore.setItemAsync("role", data.role || "");
-
-      // Verify saved values
-      const savedRole = await SecureStore.getItemAsync("role");
-      console.log("APPLY LOGIN STATE - Saved role:", savedRole);
-    } catch (error) {
-      console.log("SecureStore error:", error);
-    }
-  };
-
-  const login = async (input, passwordInput, role) => {
-    const identifier = (input || "").trim();
+  const login = async (identifierInput, passwordInput) => {
+    const identifier = (identifierInput || "").trim();
     const password = (passwordInput || "").trim();
 
     if (!identifier || !password) {
-      Alert.alert(
-        "Validation Error",
-        "Please enter both your email/mobile and password.",
-      );
-      return;
+      Alert.alert("Login Failed", "Please provide email/mobile and password.");
+      return { ok: false };
     }
 
     try {
-      const loginUrl = api.defaults.baseURL + "/auth/login";
-      console.log("LOGIN URL:", loginUrl);
-      console.log("LOGIN REQUEST:", { identifier, role });
+      const res = await api.post("/auth/login", { identifier, password });
+      const data = res.data?.data || res.data;
 
-      // Send as both 'email' and 'identifier' to match backend expectation
-      // Backend checks identifier first, then falls back to email
-      const res = await api.post("/auth/login", {
-        identifier: identifier, // For mobile number login
-        email: identifier, // For email login
-        password,
-      });
-
-      console.log("LOGIN RESPONSE STATUS:", res.status);
-      console.log("LOGIN RESPONSE DATA:", JSON.stringify(res.data));
-
-      // Handle different response structures - backend wraps response in "data" object
-      const responseData = res.data.data || res.data;
-      const token = responseData.token || res.data.token;
-      const userRole = responseData.role || res.data.role;
-      const userName = responseData.name || res.data.name;
-
-      console.log("EXTRACTED - token:", token ? "YES" : "NO");
-      console.log("EXTRACTED - role:", userRole);
-      console.log("EXTRACTED - name:", userName);
-
-      // TEMPORARY FIX: Detect agent by email pattern (until backend is fixed)
-      // If email ends with @gmail.com, treat as agent for now
-      const detectedRole =
-        identifier && identifier.includes("@gmail.com") ? "agent" : userRole;
-      console.log(
-        "FINAL ROLE - Backend:",
-        userRole,
-        "-> Detected:",
-        detectedRole,
-      );
-
-      if (token) {
-        await applyLoginState({
-          token: token,
-          role: detectedRole,
-          name: userName,
-        });
-        Alert.alert("Success", `Welcome ${userName || detectedRole}!`);
-      } else {
-        Alert.alert(
-          "Login Failed",
-          res.data?.message || "Invalid credentials - no token received",
-        );
-      }
-    } catch (error) {
-      console.log("LOGIN ERROR:", error);
-      console.log("ERROR RESPONSE:", error.response?.data);
-      console.log("ERROR STATUS:", error.response?.status);
-
-      let errorMessage = "Cannot reach server.";
-
-      if (error.response) {
-        const serverMsg = error.response.data?.message;
-        const serverStatus = error.response.status;
-        errorMessage = serverMsg || `Server Error: ${serverStatus}`;
-        // Debug: show full error details
-        console.log("Full error response:", error.response.data);
-      } else if (error.request) {
-        errorMessage = "No response from server. Check backend URL.";
+      if (!data?.success && !data?.token) {
+        Alert.alert("Login Failed", data?.message || "Login failed");
+        return { ok: false };
       }
 
-      Alert.alert(
-        "Login Failed",
-        errorMessage +
-          "\n\nDebug: " +
-          (error.response?.data?.message || error.message),
-      );
+      const token = data.token;
+      const role = data.role;
+
+      if (!token || !role) {
+        Alert.alert("Login Failed", "Login response missing token/role.");
+        return { ok: false };
+      }
+
+      setUserToken(token);
+      setUserRole(role);
+      await SecureStore.setItemAsync("token", token);
+      await SecureStore.setItemAsync("role", role);
+
+      return { ok: true, role };
+    } catch (e) {
+      const msg =
+        e.response?.data?.message ||
+        (e.code === "ECONNREFUSED" || e.message?.includes("Network")
+          ? "Cannot reach server. Check backend and API base URL."
+          : "Login failed");
+      Alert.alert("Login Failed", msg);
+      return { ok: false };
     }
   };
 
   const logout = async () => {
-    try {
-      setUserToken(null);
-      setUserRole(null);
-
-      await SecureStore.deleteItemAsync("token");
-      await SecureStore.deleteItemAsync("role");
-    } catch (error) {
-      console.log("Logout error:", error);
-    }
+    setUserToken(null);
+    setUserRole(null);
+    await SecureStore.deleteItemAsync("token");
+    await SecureStore.deleteItemAsync("role");
   };
 
-  return (
-    <AuthContext.Provider value={{ login, logout, userToken, userRole }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      login,
+      logout,
+      userToken,
+      userRole,
+      bootstrapped,
+    }),
+    [userToken, userRole, bootstrapped],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

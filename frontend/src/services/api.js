@@ -3,7 +3,7 @@ import * as SecureStore from "expo-secure-store";
 
 const DEFAULT_BASE_URL = "https://trip-planner-q03f.onrender.com/api";
 
-//const DEFAULT_BASE_URL = "http://192.168.29.233:5000/api";
+// const DEFAULT_BASE_URL = "http://192.168.29.233:5000/api";
 
 const BASE_URL = DEFAULT_BASE_URL;
 
