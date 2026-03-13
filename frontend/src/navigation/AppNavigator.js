@@ -25,6 +25,9 @@ export default function AppNavigator() {
   const { userToken, userRole } = useContext(AuthContext);
   const { navigationTheme } = useTheme();
 
+  console.log("NAVIGATION DEBUG - userToken:", userToken ? "EXISTS" : "NULL");
+  console.log("NAVIGATION DEBUG - userRole:", userRole);
+
   return (
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>

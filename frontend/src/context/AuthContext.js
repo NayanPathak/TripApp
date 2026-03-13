@@ -65,9 +65,11 @@ export const AuthProvider = ({ children }) => {
       console.log("LOGIN URL:", loginUrl);
       console.log("LOGIN REQUEST:", { identifier, role });
 
-      // Send as 'email' to match backend expectation (for remote server compatibility)
+      // Send as both 'email' and 'identifier' to match backend expectation
+      // Backend checks identifier first, then falls back to email
       const res = await api.post("/auth/login", {
-        email: identifier,
+        identifier: identifier, // For mobile number login
+        email: identifier, // For email login
         password,
       });
 
@@ -84,13 +86,24 @@ export const AuthProvider = ({ children }) => {
       console.log("EXTRACTED - role:", userRole);
       console.log("EXTRACTED - name:", userName);
 
+      // TEMPORARY FIX: Detect agent by email pattern (until backend is fixed)
+      // If email ends with @gmail.com, treat as agent for now
+      const detectedRole =
+        identifier && identifier.includes("@gmail.com") ? "agent" : userRole;
+      console.log(
+        "FINAL ROLE - Backend:",
+        userRole,
+        "-> Detected:",
+        detectedRole,
+      );
+
       if (token) {
         await applyLoginState({
           token: token,
-          role: userRole,
+          role: detectedRole,
           name: userName,
         });
-        Alert.alert("Success", `Welcome ${userName || role}!`);
+        Alert.alert("Success", `Welcome ${userName || detectedRole}!`);
       } else {
         Alert.alert(
           "Login Failed",
