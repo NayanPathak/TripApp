@@ -29,6 +29,11 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (identifierInput, passwordInput) => {
+    console.log("AUTH DEBUG - Raw inputs:", {
+      identifierInput: JSON.stringify(identifierInput),
+      passwordInput: JSON.stringify(passwordInput),
+      typeofIdentifier: typeof identifierInput,
+    });
     const identifier = (identifierInput || "").trim();
     const password = (passwordInput || "").trim();
 

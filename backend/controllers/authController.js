@@ -49,7 +49,15 @@ export const register = async (req, res) => {
 // =============================
 // Login
 // =============================
-export const login = async (req, res) => {
+
+const login = async (req, res) => {
+  console.log("LOGIN DEBUG - FULL BODY:", {
+    body: req.body,
+    identifier: req.body.identifier,
+    email: req.body.email,
+    passwordExists: !!req.body.password,
+    contentType: req.headers["content-type"],
+  });
   const identifier = req.body.identifier || req.body.email;
   const { password } = req.body;
 
