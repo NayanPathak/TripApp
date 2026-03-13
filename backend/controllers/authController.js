@@ -50,7 +50,7 @@ export const register = async (req, res) => {
 // Login
 // =============================
 
-const login = async (req, res) => {
+export const login = async (req, res) => {
   console.log("LOGIN DEBUG - FULL BODY:", {
     body: req.body,
     identifier: req.body.identifier,
