@@ -11,12 +11,13 @@ import {
   ActivityIndicator,
 } from "react-native";
 import api from "../services/api";
+import { useTheme } from "../theme/ThemeProvider";
 
 export default function AllPackagesScreen() {
+  const { theme } = useTheme();
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // State for Assignment Modal
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPackageId, setSelectedPackageId] = useState(null);
   const [userMobile, setUserMobile] = useState("");
@@ -50,7 +51,6 @@ export default function AllPackagesScreen() {
 
     setAssignLoading(true);
     try {
-      // Calling the backend assign route
       const res = await api.post("/packages/assign", {
         mobile: userMobile,
         packageId: selectedPackageId,
@@ -72,40 +72,59 @@ export default function AllPackagesScreen() {
   };
 
   const renderPackage = ({ item }) => (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: theme.colors.card,
+          borderColor: theme.colors.border,
+        },
+      ]}
+    >
       <View style={styles.cardHeader}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.days}>{item.totalDays} Days</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>
+          {item.title}
+        </Text>
+        <Text style={[styles.days, { color: theme.colors.primary }]}>
+          {item.totalDays} Days
+        </Text>
       </View>
-      <Text style={styles.sub}>{item.cities}</Text>
+      <Text style={[styles.sub, { color: theme.colors.muted }]}>
+        {item.cities}
+      </Text>
 
       <TouchableOpacity
-        style={styles.assignBtn}
+        style={[styles.assignBtn, { backgroundColor: theme.colors.primary }]}
         onPress={() => openAssignModal(item._id)}
       >
-        <Text style={styles.btnText}>Assign to User</Text>
+        <Text style={[styles.btnText, { color: theme.colors.buttonText }]}>
+          Assign to User
+        </Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>All Packages</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.header, { color: theme.colors.primary }]}>
+        All Packages
+      </Text>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#0C7779" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       ) : (
         <FlatList
           data={packages}
           keyExtractor={(item) => item._id}
           renderItem={renderPackage}
           ListEmptyComponent={
-            <Text style={styles.empty}>No packages created yet.</Text>
+            <Text style={[styles.empty, { color: theme.colors.muted }]}>
+              No packages created yet.
+            </Text>
           }
         />
       )}
 
-      {/* Assignment Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -113,38 +132,67 @@ export default function AllPackagesScreen() {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Assign Package</Text>
-            <Text style={styles.label}>Enter User Mobile Number:</Text>
+          <View
+            style={[
+              styles.modalView,
+              {
+                backgroundColor: theme.colors.card,
+                borderColor: theme.colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: theme.colors.primary }]}>
+              Assign Package
+            </Text>
+            <Text style={[styles.label, { color: theme.colors.text }]}>
+              Enter User Mobile Number:
+            </Text>
 
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.colors.inputBackground,
+                  color: theme.colors.inputText,
+                  borderColor: theme.colors.border,
+                },
+              ]}
               placeholder="User Mobile"
+              placeholderTextColor={theme.colors.muted}
               keyboardType="phone-pad"
               value={userMobile}
               onChangeText={setUserMobile}
             />
 
             <TouchableOpacity
-              style={styles.modalBtn}
+              style={[styles.modalBtn, { backgroundColor: theme.colors.primary }]}
               onPress={handleAssign}
               disabled={assignLoading}
             >
               {assignLoading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={theme.colors.buttonText} />
               ) : (
-                <Text style={styles.btnText}>Confirm Assignment</Text>
+                <Text style={[styles.btnText, { color: theme.colors.buttonText }]}>
+                  Confirm Assignment
+                </Text>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[
                 styles.modalBtn,
-                { backgroundColor: "#aaa", marginTop: 10 },
+                {
+                  backgroundColor: theme.colors.inputBackground,
+                  borderWidth: 1,
+                  borderColor: theme.colors.border,
+                  marginTop: 10,
+                },
               ]}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.btnText}>Cancel</Text>
+              <Text style={[styles.btnText, { color: theme.colors.text }]}>
+                Cancel
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -154,19 +202,16 @@ export default function AllPackagesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  container: { flex: 1, padding: 20 },
   header: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#0C7779",
     marginBottom: 20,
   },
   card: {
-    backgroundColor: "#f5f5f5",
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
-    borderColor: "#ddd",
     borderWidth: 1,
   },
   cardHeader: {
@@ -174,19 +219,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  title: { fontSize: 18, fontWeight: "bold", color: "#333" },
-  days: { fontWeight: "bold", color: "#0C7779" },
-  sub: { color: "#666", marginTop: 5, marginBottom: 15 },
+  title: { fontSize: 18, fontWeight: "bold" },
+  days: { fontWeight: "bold" },
+  sub: { marginTop: 5, marginBottom: 15 },
   assignBtn: {
-    backgroundColor: "#0C7779",
     padding: 10,
     borderRadius: 5,
     alignItems: "center",
   },
-  btnText: { color: "#fff", fontWeight: "bold" },
-  empty: { textAlign: "center", marginTop: 50, color: "#999", fontSize: 16 },
+  btnText: { fontWeight: "bold" },
+  empty: { textAlign: "center", marginTop: 50, fontSize: 16 },
 
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
@@ -195,9 +238,9 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: "80%",
-    backgroundColor: "white",
     borderRadius: 20,
     padding: 25,
+    borderWidth: 1,
     shadowColor: "#000",
     elevation: 5,
   },
@@ -206,18 +249,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 15,
     textAlign: "center",
-    color: "#0C7779",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
     padding: 10,
     borderRadius: 5,
     marginBottom: 20,
     fontSize: 16,
   },
   modalBtn: {
-    backgroundColor: "#0C7779",
     padding: 12,
     borderRadius: 5,
     alignItems: "center",

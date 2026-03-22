@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo } from "react";
-import { useColorScheme } from "react-native";
+import { Appearance, useColorScheme } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import {
   DefaultTheme as NavigationLightTheme,
@@ -14,7 +14,9 @@ const ThemeContext = createContext({
 });
 
 export const ThemeProvider = ({ children }) => {
-  const systemScheme = useColorScheme();
+  // On some Android release builds useColorScheme() can be null briefly; fall back to Appearance.
+  const systemScheme =
+    useColorScheme() ?? Appearance.getColorScheme() ?? "light";
   const colorScheme = systemScheme === "dark" ? "dark" : "light";
   const theme = colorScheme === "dark" ? themes.dark : themes.light;
 

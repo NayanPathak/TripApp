@@ -23,22 +23,28 @@ export default function CreatePackageScreen({ navigation }) {
   const [days, setDays] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // State for temporary day input
   const [tempDay, setTempDay] = useState({
     dayNumber: 1,
     hotel: "",
     taxi: "",
     pickupLocation: "",
     pickupTime: "",
-    places: [], // Array of objects: { name: "", image: "" }
+    places: [],
   });
 
-  // State for the specific place currently being typed
   const [currentPlaceName, setCurrentPlaceName] = useState("");
   const [currentPlaceImg, setCurrentPlaceImg] = useState(null);
   const [uploadingImg, setUploadingImg] = useState(false);
 
-  // --- CLOUDINARY UPLOAD FUNCTION ---
+  const inputStyle = [
+    styles.input,
+    {
+      backgroundColor: theme.colors.inputBackground,
+      color: theme.colors.inputText,
+      borderColor: theme.colors.border,
+    },
+  ];
+
   const uploadToCloudinary = async (base64Img) => {
     if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
       Alert.alert(
@@ -117,7 +123,6 @@ export default function CreatePackageScreen({ navigation }) {
         ],
       }));
 
-      // Reset the small form for the next place
       setCurrentPlaceName("");
       setCurrentPlaceImg(null);
       Alert.alert("Success", "Place added to current day!");
@@ -126,7 +131,6 @@ export default function CreatePackageScreen({ navigation }) {
   };
 
   const addDay = () => {
-    // Make sure they added at least one place
     if (tempDay.places.length === 0) {
       Alert.alert(
         "Missing Info",
@@ -137,14 +141,13 @@ export default function CreatePackageScreen({ navigation }) {
 
     setDays([...days, tempDay]);
 
-    // Reset temp day for the next day
     setTempDay({
       dayNumber: days.length + 2,
       hotel: "",
       taxi: "",
       pickupLocation: "",
       pickupTime: "",
-      places: [], // Reset to empty array
+      places: [],
     });
   };
 
@@ -159,7 +162,6 @@ export default function CreatePackageScreen({ navigation }) {
 
     setLoading(true);
     try {
-      // Reformat to match Backend Schema
       const formattedItinerary = days.map((day) => {
         const formattedHotel = day.hotel ? { name: day.hotel } : undefined;
         const formattedTaxi = day.taxi
@@ -175,7 +177,7 @@ export default function CreatePackageScreen({ navigation }) {
           title: `Day ${day.dayNumber} in ${cities}`,
           hotel: formattedHotel,
           taxi: formattedTaxi,
-          places: day.places, // It is already formatted properly as [{name, image}]!
+          places: day.places,
         };
       });
 
@@ -200,71 +202,100 @@ export default function CreatePackageScreen({ navigation }) {
     }
   };
 
-  return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Create New Package</Text>
+  const placeTint =
+    theme.mode === "dark" ? "rgba(12, 119, 121, 0.22)" : "#E0F2F1";
 
-      <Text style={styles.label}>Package Name</Text>
+  return (
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      contentContainerStyle={styles.content}
+    >
+      <Text style={[styles.header, { color: theme.colors.primary }]}>
+        Create New Package
+      </Text>
+
+      <Text style={[styles.label, { color: theme.colors.text }]}>Package Name</Text>
       <TextInput
-        style={styles.input}
+        style={inputStyle}
         placeholder="e.g. Kerala Bliss"
+        placeholderTextColor={theme.colors.muted}
         value={title}
         onChangeText={setTitle}
       />
 
-      <Text style={styles.label}>Cities Covered</Text>
+      <Text style={[styles.label, { color: theme.colors.text }]}>Cities Covered</Text>
       <TextInput
-        style={styles.input}
+        style={inputStyle}
         placeholder="e.g. Munnar, Alleppey"
+        placeholderTextColor={theme.colors.muted}
         value={cities}
         onChangeText={setCities}
       />
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
 
-      <Text style={styles.subHeader}>Day {tempDay.dayNumber} Details</Text>
+      <Text style={[styles.subHeader, { color: theme.colors.text }]}>
+        Day {tempDay.dayNumber} Details
+      </Text>
 
       <TextInput
-        style={styles.input}
+        style={inputStyle}
         placeholder="Hotel Name (Optional)"
+        placeholderTextColor={theme.colors.muted}
         onChangeText={(t) => setTempDay({ ...tempDay, hotel: t })}
         value={tempDay.hotel}
       />
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <TextInput
-          style={[styles.input, { flex: 1, marginRight: 10 }]}
+          style={[...inputStyle, { flex: 1, marginRight: 10 }]}
           placeholder="Pickup Loc (e.g. Hotel)"
+          placeholderTextColor={theme.colors.muted}
           onChangeText={(t) => setTempDay({ ...tempDay, pickupLocation: t })}
           value={tempDay.pickupLocation}
         />
         <TextInput
-          style={[styles.input, { flex: 1 }]}
+          style={[...inputStyle, { flex: 1 }]}
           placeholder="Time (e.g. 9:00 AM)"
+          placeholderTextColor={theme.colors.muted}
           onChangeText={(t) => setTempDay({ ...tempDay, pickupTime: t })}
           value={tempDay.pickupTime}
         />
       </View>
 
       <TextInput
-        style={styles.input}
+        style={inputStyle}
         placeholder="Taxi / Driver Info (Optional)"
+        placeholderTextColor={theme.colors.muted}
         onChangeText={(t) => setTempDay({ ...tempDay, taxi: t })}
         value={tempDay.taxi}
       />
 
-      {/* --- NEW PLACE ADDITION SECTION --- */}
-      <View style={styles.placeCreatorContainer}>
-        <Text style={styles.label}>Add Places to Visit</Text>
+      <View
+        style={[
+          styles.placeCreatorContainer,
+          {
+            backgroundColor: theme.colors.card,
+            borderColor: theme.colors.border,
+          },
+        ]}
+      >
+        <Text style={[styles.label, { color: theme.colors.text }]}>
+          Add Places to Visit
+        </Text>
 
         <TextInput
-          style={styles.input}
+          style={inputStyle}
           placeholder="Place Name (e.g. Ajmer Fort)"
+          placeholderTextColor={theme.colors.muted}
           value={currentPlaceName}
           onChangeText={setCurrentPlaceName}
         />
 
-        <TouchableOpacity style={styles.imgBtn} onPress={pickImage}>
-          <Text style={styles.btnText}>
+        <TouchableOpacity
+          style={[styles.imgBtn, { backgroundColor: theme.colors.primary }]}
+          onPress={pickImage}
+        >
+          <Text style={[styles.imgBtnText, { color: theme.colors.buttonText }]}>
             {currentPlaceImg ? "✅ Image Selected" : "📸 Select Place Image"}
           </Text>
         </TouchableOpacity>
@@ -272,58 +303,85 @@ export default function CreatePackageScreen({ navigation }) {
         <TouchableOpacity
           style={[
             styles.addDayBtn,
-            { backgroundColor: "#E0F2F1", marginTop: 10 },
+            {
+              backgroundColor: placeTint,
+              borderColor: theme.colors.primary,
+              marginTop: 10,
+            },
           ]}
           onPress={handleAddPlaceToDay}
           disabled={uploadingImg}
         >
           {uploadingImg ? (
-            <ActivityIndicator color="#0C7779" />
+            <ActivityIndicator color={theme.colors.primary} />
           ) : (
-            <Text style={styles.addDayText}>
+            <Text style={[styles.addDayText, { color: theme.colors.primary }]}>
               + Add This Place to Day {tempDay.dayNumber}
             </Text>
           )}
         </TouchableOpacity>
       </View>
 
-      {/* Preview of places added TO THE CURRENT DAY */}
       {tempDay.places.length > 0 && (
         <View style={{ marginVertical: 10 }}>
-          <Text style={{ fontWeight: "bold", marginBottom: 8 }}>
+          <Text style={[styles.previewTitle, { color: theme.colors.text }]}>
             Places added for Day {tempDay.dayNumber}:
           </Text>
           {tempDay.places.map((p, idx) => (
-            <View key={idx} style={styles.placePreviewRow}>
+            <View
+              key={idx}
+              style={[
+                styles.placePreviewRow,
+                {
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+            >
               <Image source={{ uri: p.image }} style={styles.miniThumb} />
-              <Text style={styles.placePreviewText}>{p.name}</Text>
+              <Text style={[styles.placePreviewText, { color: theme.colors.text }]}>
+                {p.name}
+              </Text>
             </View>
           ))}
         </View>
       )}
 
-      <TouchableOpacity style={styles.addDayBtn} onPress={addDay}>
-        <Text style={styles.addDayText}>
+      <TouchableOpacity
+        style={[styles.addDayBtn, { borderColor: theme.colors.primary }]}
+        onPress={addDay}
+      >
+        <Text style={[styles.addDayText, { color: theme.colors.primary }]}>
           Save Day {tempDay.dayNumber} & Next
         </Text>
       </TouchableOpacity>
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
 
       {days.length > 0 && (
-        <View style={styles.summaryBox}>
-          <Text style={{ fontWeight: "bold", marginBottom: 10, color: "#333" }}>
+        <View
+          style={[
+            styles.summaryBox,
+            {
+              backgroundColor: theme.colors.card,
+              borderColor: theme.colors.border,
+            },
+          ]}
+        >
+          <Text style={[styles.summaryTitle, { color: theme.colors.text }]}>
             Itinerary Preview: {days.length} Days Added
           </Text>
           <TouchableOpacity
-            style={styles.submitBtn}
+            style={[styles.submitBtn, { backgroundColor: theme.colors.primary }]}
             onPress={submitPackage}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={theme.colors.buttonText} />
             ) : (
-              <Text style={styles.btnText}>FINISH & SAVE PACKAGE</Text>
+              <Text style={[styles.submitBtnText, { color: theme.colors.buttonText }]}>
+                FINISH & SAVE PACKAGE
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -334,73 +392,70 @@ export default function CreatePackageScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  container: { flex: 1 },
+  content: { padding: 20, paddingBottom: 50 },
   header: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#0C7779",
     marginBottom: 20,
   },
   subHeader: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
     marginBottom: 10,
   },
-  label: { fontSize: 14, fontWeight: "600", color: "#555", marginBottom: 5 },
+  label: { fontSize: 14, fontWeight: "600", marginBottom: 5 },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
     padding: 12,
     borderRadius: 8,
     marginBottom: 15,
     fontSize: 16,
   },
-  divider: { height: 1, backgroundColor: "#eee", marginVertical: 20 },
+  divider: { height: 1, marginVertical: 20 },
 
   placeCreatorContainer: {
-    backgroundColor: "#f8f9fa",
     padding: 15,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e9ecef",
     marginBottom: 15,
   },
   imgBtn: {
-    backgroundColor: "#555",
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
   },
-  btnText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  imgBtnText: { fontWeight: "bold", fontSize: 16 },
+
+  previewTitle: { fontWeight: "bold", marginBottom: 8 },
 
   placePreviewRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
     padding: 8,
     borderRadius: 8,
     marginBottom: 5,
+    borderWidth: 1,
   },
   miniThumb: { width: 40, height: 40, borderRadius: 4, marginRight: 10 },
-  placePreviewText: { fontSize: 16, color: "#333" },
+  placePreviewText: { fontSize: 16 },
 
   addDayBtn: {
-    borderColor: "#0C7779",
     borderWidth: 2,
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
     marginVertical: 10,
   },
-  addDayText: { color: "#0C7779", fontWeight: "bold" },
+  addDayText: { fontWeight: "bold" },
 
-  summaryBox: { backgroundColor: "#f9f9f9", padding: 15, borderRadius: 10 },
+  summaryBox: { padding: 15, borderRadius: 10, borderWidth: 1 },
+  summaryTitle: { fontWeight: "bold", marginBottom: 10 },
   submitBtn: {
-    backgroundColor: "#0C7779",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
   },
+  submitBtnText: { fontWeight: "bold", fontSize: 16 },
 });

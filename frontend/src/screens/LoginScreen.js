@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import {
-  View,
+  View,ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import { useTheme } from "../theme/ThemeProvider";
+import LottieView from "lottie-react-native";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -27,7 +28,7 @@ function validateIdentifier(raw) {
   return null;
 }
 
-export default function LoginScreen({ route, navigation }) {
+export default function LoginScreen({ route }) {
   const paramsEmail = route?.params?.email ?? "";
   const paramsPassword = route?.params?.password ?? "";
 
@@ -44,8 +45,7 @@ export default function LoginScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const { theme } = useTheme();
 
-  const canSubmit =
-    identifier.trim().length > 0 && password.trim().length > 0;
+  const canSubmit = identifier.trim().length > 0 && password.trim().length > 0;
 
   const handleLogin = async () => {
     const err = validateIdentifier(identifier);
@@ -60,86 +60,95 @@ export default function LoginScreen({ route, navigation }) {
   };
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-    >
-      <Text style={[styles.header, { color: theme.colors.text }]}>Sign in</Text>
-
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: theme.colors.inputBackground,
-            color: theme.colors.inputText,
-            borderColor: fieldError
-              ? theme.colors.danger
-              : theme.colors.border,
-          },
-        ]}
-        placeholder="Email or mobile number"
-        placeholderTextColor={theme.colors.muted}
-        value={identifier}
-        onChangeText={(t) => {
-          setIdentifier(t);
-          setFieldError(null);
-        }}
-        autoCapitalize="none"
-        autoCorrect={false}
-        keyboardType="default"
-        textContentType="username"
-        autoComplete="username"
-      />
-
-      {fieldError ? (
-        <Text style={[styles.hint, { color: theme.colors.danger }]}>
-          {fieldError}
-        </Text>
-      ) : null}
-
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor: theme.colors.inputBackground,
-            color: theme.colors.inputText,
-            borderColor: theme.colors.border,
-          },
-        ]}
-        placeholder="Password"
-        placeholderTextColor={theme.colors.muted}
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        textContentType="password"
-        autoComplete="password"
-      />
-
-      <TouchableOpacity
-        style={[styles.btn, { backgroundColor: theme.colors.primary }]}
-        onPress={handleLogin}
-        disabled={loading || !canSubmit}
+    
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-        {loading ? (
-          <ActivityIndicator color={theme.colors.buttonText} />
-        ) : (
-          <Text style={[styles.btnText, { color: theme.colors.buttonText }]}>
-            Login
+      <ScrollView contentContainerStyle={{ flexGrow: 0.5, justifyContent: "center" }}>
+        {/* --- LOCAL LOTTIE BRANDING SECTION --- */}
+        <View style={styles.brandingContainer}>
+          <Text style={[styles.mainHeading, { color: theme.colors.primary }]}>
+            Trip Itinerary App
           </Text>
-        )}
-      </TouchableOpacity>
+          <LottieView
+            // 🚀 UPDATED LINE: Pointing to your local assets folder
+            source={require("../../assets/loginscreenflight.json")}
+            autoPlay
+            loop
+            style={styles.lottieAnimation}
+          />
+        </View>
+        {/* ----------------------------------- */}
 
-      <TouchableOpacity
-        style={styles.registerContainer}
-        onPress={() => navigation.navigate("RegisterAgent")}
-      >
-        <Text style={[styles.registerText, { color: theme.colors.muted }]}>
-          Need an agent account?{" "}
-          <Text style={[styles.registerLink, { color: theme.colors.primary }]}>
-            Register here
-          </Text>
+        <Text style={[styles.header, { color: theme.colors.text }]}>
+          Sign in
         </Text>
-      </TouchableOpacity>
-    </View>
+
+        <TextInput
+          style={[
+            styles.input,
+            {
+              backgroundColor: theme.colors.inputBackground,
+              color: theme.colors.inputText,
+              borderColor: fieldError
+                ? theme.colors.danger
+                : theme.colors.border,
+            },
+          ]}
+          placeholder="Email or mobile number"
+          placeholderTextColor={theme.colors.muted}
+          value={identifier}
+          onChangeText={(t) => {
+            setIdentifier(t);
+            setFieldError(null);
+          }}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="default"
+          textContentType="username"
+          autoComplete="username"
+        />
+
+        {fieldError ? (
+          <Text style={[styles.hint, { color: theme.colors.danger }]}>
+            {fieldError}
+          </Text>
+        ) : null}
+
+        <TextInput
+          style={[
+            styles.input,
+            {
+              backgroundColor: theme.colors.inputBackground,
+              color: theme.colors.inputText,
+              borderColor: theme.colors.border,
+            },
+          ]}
+          placeholder="Password"
+          placeholderTextColor={theme.colors.muted}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          textContentType="password"
+          autoComplete="password"
+        />
+
+        <TouchableOpacity
+          style={[styles.btn, { backgroundColor: theme.colors.primary }]}
+          onPress={handleLogin}
+          disabled={loading || !canSubmit}
+        >
+          {loading ? (
+            <ActivityIndicator color={theme.colors.buttonText} />
+          ) : (
+            <Text style={[styles.btnText, { color: theme.colors.buttonText }]}>
+              Login
+            </Text>
+          )}
+        </TouchableOpacity>
+        </ScrollView>
+      </View>
+
   );
 }
 
@@ -149,11 +158,25 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "center",
   },
-  header: {
-    fontSize: 28,
-    textAlign: "center",
-    marginBottom: 30,
+  brandingContainer: {
+    alignItems: "center",
+    marginBottom: 40,
+  },
+  lottieAnimation: {
+    width: 200,
+    height: 200,
+    marginBottom: 10,
+  },
+  mainHeading: {
+    fontSize: 32,
     fontWeight: "bold",
+    textAlign: "center",
+  },
+  header: {
+    fontSize: 22,
+    textAlign: "center",
+    marginBottom: 20,
+    fontWeight: "600",
   },
   hint: {
     fontSize: 14,
@@ -173,8 +196,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   btnText: { fontSize: 18, fontWeight: "bold" },
-
-  registerContainer: { marginTop: 20, alignItems: "center" },
-  registerText: { fontSize: 16 },
-  registerLink: { fontWeight: "bold" },
 });

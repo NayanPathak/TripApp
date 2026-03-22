@@ -7,7 +7,6 @@ import { useTheme } from "../theme/ThemeProvider";
 
 // --- AUTH SCREENS ---
 import LoginScreen from "../screens/LoginScreen";
-import RegisterAgentScreen from "../screens/RegisterAgentScreen";
 
 // --- AGENT SCREENS ---
 import AgentDashboard from "../screens/AgentDashboard";
@@ -17,6 +16,8 @@ import AllPackagesScreen from "../screens/AllPackagesScreen";
 
 // --- ADMIN SCREENS ---
 import AdminDashboard from "../screens/AdminDashboard";
+import RegisterAgentScreen from "../screens/RegisterAgentScreen";
+import ManageAgentsScreen from "../screens/ManageAgentsScreen";
 
 // --- USER SCREENS ---
 import UserDashboard from "../screens/UserDashboard";
@@ -50,15 +51,29 @@ export default function AppNavigator() {
           // === AUTH STACK (Not Logged In) — Login is the default entry ===
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen
-              name="RegisterAgent"
-              component={RegisterAgentScreen}
-            />
           </>
         ) : userRole === "admin" ? (
           // === ADMIN STACK ===
           <>
             <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
+            <Stack.Screen
+              name="RegisterAgent"
+              component={RegisterAgentScreen}
+              options={{
+                headerShown: true,
+                title: "Create Agent",
+                headerTintColor: "#0C7779",
+              }}
+            />
+            <Stack.Screen
+              name="ManageAgents"
+              component={ManageAgentsScreen}
+              options={{
+                headerShown: true,
+                title: "Manage Agents",
+                headerTintColor: "#0C7779",
+              }}
+            />
           </>
         ) : userRole === "agent" ? (
           // === AGENT STACK ===

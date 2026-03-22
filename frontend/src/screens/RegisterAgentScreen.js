@@ -9,8 +9,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 import api from "../services/api";
+import { useTheme } from "../theme/ThemeProvider";
 
 export default function RegisterAgentScreen({ navigation }) {
+  const { theme } = useTheme();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,23 +26,15 @@ export default function RegisterAgentScreen({ navigation }) {
 
     setLoading(true);
     try {
-      // Calls the backend: POST /api/auth/register
-      const res = await api.post("/auth/register", {
-        name,
-        email,
+      const res = await api.post("/admin/agents", {
+        name: name.trim(),
+        email: email.trim(),
         password,
       });
 
       if (res.data.success) {
-        Alert.alert("Success", "Account created! Please log in.", [
-          {
-            text: "OK",
-            onPress: () =>
-              navigation.navigate("Login", {
-                email: email.trim(),
-                password: password.trim(),
-              }),
-          },
+        Alert.alert("Success", "Agent account created.", [
+          { text: "OK", onPress: () => navigation.goBack() },
         ]);
       }
     } catch (error) {
@@ -56,19 +50,37 @@ export default function RegisterAgentScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Agent Registration</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.lead, { color: theme.colors.muted }]}>
+        Enter details for the new agent account.
+      </Text>
 
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.inputText,
+            borderColor: theme.colors.border,
+          },
+        ]}
         placeholder="Full Name"
+        placeholderTextColor={theme.colors.muted}
         value={name}
         onChangeText={setName}
       />
 
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.inputText,
+            borderColor: theme.colors.border,
+          },
+        ]}
         placeholder="Email Address"
+        placeholderTextColor={theme.colors.muted}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -76,30 +88,42 @@ export default function RegisterAgentScreen({ navigation }) {
       />
 
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.inputBackground,
+            color: theme.colors.inputText,
+            borderColor: theme.colors.border,
+          },
+        ]}
         placeholder="Password"
+        placeholderTextColor={theme.colors.muted}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
 
       <TouchableOpacity
-        style={styles.btn}
+        style={[styles.btn, { backgroundColor: theme.colors.primary }]}
         onPress={handleRegister}
         disabled={loading}
       >
         {loading ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={theme.colors.buttonText} />
         ) : (
-          <Text style={styles.btnText}>Register</Text>
+          <Text style={[styles.btnText, { color: theme.colors.buttonText }]}>
+            Create agent
+          </Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => navigation.goBack()}
+        onPress={() => navigation.navigate("AdminDashboard")}
         style={{ marginTop: 20 }}
       >
-        <Text style={styles.link}>Already have an account? Login</Text>
+        <Text style={[styles.link, { color: theme.colors.primary }]}>
+          Back to dashboard
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -110,29 +134,25 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: "center",
-    backgroundColor: "#fff",
   },
-  header: {
-    fontSize: 28,
-    color: "#0C7779",
+  lead: {
     textAlign: "center",
-    marginBottom: 30,
-    fontWeight: "bold",
+    marginBottom: 24,
+    fontSize: 16,
+    lineHeight: 22,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
     padding: 15,
     borderRadius: 8,
     marginBottom: 15,
     fontSize: 16,
   },
   btn: {
-    backgroundColor: "#0C7779",
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
   },
-  btnText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
-  link: { color: "#0C7779", textAlign: "center", fontSize: 16 },
+  btnText: { fontSize: 18, fontWeight: "bold" },
+  link: { textAlign: "center", fontSize: 16 },
 });
