@@ -37,7 +37,6 @@ export default function RegisterAgentScreen({ navigation }) {
             text: "OK",
             onPress: () =>
               navigation.navigate("Login", {
-                role: "agent",
                 email: email.trim(),
                 password: password.trim(),
               }),

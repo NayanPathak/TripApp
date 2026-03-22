@@ -6,7 +6,6 @@ import { AuthContext } from "../context/AuthContext";
 import { useTheme } from "../theme/ThemeProvider";
 
 // --- AUTH SCREENS ---
-import WelcomeScreen from "../screens/WelcomeScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterAgentScreen from "../screens/RegisterAgentScreen";
 
@@ -48,9 +47,8 @@ export default function AppNavigator() {
             <Stack.Screen name="Boot" component={BootScreen} />
           </>
         ) : userToken == null ? (
-          // === AUTH STACK (Not Logged In) ===
+          // === AUTH STACK (Not Logged In) — Login is the default entry ===
           <>
-            <Stack.Screen name="Welcome" component={WelcomeScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen
               name="RegisterAgent"

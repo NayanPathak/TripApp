@@ -9,8 +9,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 import api from "../services/api";
+import { useTheme } from "../theme/ThemeProvider";
 
 export default function CreateUserScreen({ navigation }) {
+  const { theme } = useTheme();
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +22,7 @@ export default function CreateUserScreen({ navigation }) {
     if (!name || !mobile || !password) {
       Alert.alert("Error", "Please fill all fields");
       return;
-    }
+     }
 
     setLoading(true);
     try {

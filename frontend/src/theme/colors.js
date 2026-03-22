@@ -10,6 +10,7 @@ export const lightTheme = {
     inputText: "#000000",
     buttonText: "#FFFFFF",
     muted: "#6B7280",
+    danger: "#EF4444",
   },
 };
 
@@ -25,6 +26,7 @@ export const darkTheme = {
     inputText: "#F9FAFB",
     buttonText: "#FFFFFF",
     muted: "#9CA3AF",
+    danger: "#EF4444",
   },
 };
 
@@ -32,4 +34,3 @@ export const themes = {
   light: lightTheme,
   dark: darkTheme,
 };
-

@@ -12,10 +12,12 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import api from "../services/api";
+import { useTheme } from "../theme/ThemeProvider";
 
 import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from "@env";
 
 export default function CreatePackageScreen({ navigation }) {
+  const { theme } = useTheme();
   const [title, setTitle] = useState("");
   const [cities, setCities] = useState("");
   const [days, setDays] = useState([]);
@@ -27,7 +29,7 @@ export default function CreatePackageScreen({ navigation }) {
     hotel: "",
     taxi: "",
     pickupLocation: "",
-    pickupTime: "", 
+    pickupTime: "",
     places: [], // Array of objects: { name: "", image: "" }
   });
 
