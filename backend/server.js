@@ -6,6 +6,7 @@ import connectDB from "./config/db.js"; // Note the .js extension
 // Import Routes
 import authRoutes from "./routes/authRoutes.js";
 import packageRoutes from "./routes/packageRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 
@@ -14,13 +15,13 @@ connectDB();
 
 app.use(express.json());
 
-app.use(
-  cors({
-    origin: "*", // This allows your phone to talk to your laptop
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-);
+//Add this in your backend server.js
+// const cors = require("cors");
+// app.use(cors({
+//   origin: "*", // This allows your phone to talk to your laptop
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   allowedHeaders: ["Content-Type", "Authorization"]
+// }));
 
 // Mount Routes
 app.get("/", (req, res) => {
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/packages", packageRoutes);
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

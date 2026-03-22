@@ -8,41 +8,61 @@ const generateToken = (id, role) => {
   });
 };
 
+/** Used only via Postman / bootstrap — not exposed in the app. */
+const CREATE_ADMIN_SECRET = "SuperSecretBossKey99";
+
 // =============================
-// Agent Registration
+// Bootstrap admin (secret key required)
 // =============================
-export const register = async (req, res) => {
-  const { name, email, password } = req.body;
+
+export const createAdmin = async (req, res) => {
+  const { name, email, password, secretKey } = req.body;
+
+  if (secretKey !== CREATE_ADMIN_SECRET) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized",
+    });
+  }
+
+  if (!name || !email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "Name, email, and password are required.",
+    });
+  }
 
   try {
-    const existingUser = await User.findOne({ email });
-
-    if (existingUser) {
+    const emailNorm = String(email).trim().toLowerCase();
+    const existing = await User.findOne({ email: emailNorm });
+    if (existing) {
       return res.status(400).json({
         success: false,
-        message: "User already exists with this email.",
+        message: "A user with this email already exists.",
       });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      name,
-      email,
+      name: String(name).trim(),
+      email: emailNorm,
       password: hashedPassword,
-      role: "agent",
+      role: "admin",
     });
 
     res.status(201).json({
       success: true,
-      token: generateToken(user._id, user.role),
-      role: user.role,
+      message: "Admin user created.",
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (err) {
-    res.status(400).json({
-      success: false,
-      message: err.message,
-    });
+    res.status(400).json({ success: false, message: err.message });
   }
 };
 
